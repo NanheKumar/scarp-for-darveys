@@ -1,0 +1,41 @@
+Playwright Node
+Node.js + Axios + Cheerio
+url : https://www.stockfirmati.com/d/34745/valentino-bags/bags/donna/valentino-bags-borsa-donna-rosa
+
+
+Out Of Stock
+document.querySelectorAll('.stock span')[1].innerText
+
+Size 
+document.querySelectorAll('.stock span')[0].innerText
+
+
+document.querySelector('.product-taglie').innerText
+document.querySelector('.product-disponibilita').innerText
+
+
+First Find Size
+document.querySelector('.product-taglie').innerText
+
+
+Url : https://www.katespadeoutlet.com/products/spade-flower-pvc-mini-top-handle-crossbody/KK996-250.html
+
+document.querySelector('#add-to-cart').innerText.trim()
+Sold Out\n- Add To Bag or 'Add to Bag\n- Add To Bag'
+
+document.querySelector('[data-qa="cm_txt_pdt_label_color"]').innerText.trim()
+Color: Black Multi or Color: undefined
+
+
+document.querySelector('[data-qa="cm_txt_pdt_label_size_msg"]').innerText.trim()
+Select a size
+
+[...document.querySelectorAll('.product-size-button')].map(b => b.innerText.trim())
+
+
+
+
+
+
+
+
