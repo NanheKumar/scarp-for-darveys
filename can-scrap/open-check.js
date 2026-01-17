@@ -1,7 +1,8 @@
 const { chromium } = require("playwright");
 //https://www.michaelkors.com/on/demandware.store/Sites-mk_us-Site/en_US/Product-Variation?pid=77A7161M42
+//https://www.michaelkors.com/on/demandware.store/Sites-mk_us-Site/en_US/Product-Variation?pid=35R6G6AS2Y
 const URL =
-  "https://www.michaelkors.com/on/demandware.store/Sites-mk_us-Site/en_US/Product-Variation?pid=35R6G6AS2Y";
+  "https://www.michaelkors.com/on/demandware.store/Sites-mk_us-Site/en_US/Product-Variation?dwvar_35R6G6AS2Y_color=0001&dwvar_35R6G6AS2Y_size=NS&pid=35R6G6AS2Y&quantity=1";
 
 (async () => {
   const browser = await chromium.launch({ headless: false });

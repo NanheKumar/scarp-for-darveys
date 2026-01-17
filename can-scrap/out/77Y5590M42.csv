@@ -1,0 +1,7 @@
+pid,product_name,brand,site,locale,color_id,color_name,size_id,size_label,sku,cta_type,cta_label,available,notify_me_active,sales_value,sales_formatted,list_value,list_formatted,discount_percent,currency,error
+77Y5590M42,Quilted Hooded Jacket,Michael Kors Outlet,mk_us,en_US,0001,BLACK,XS,XS,308884148,ADD_TO_BAG,Add to Bag,true,false,95.2,$95.20,250,$250.00,61,USD,
+77Y5590M42,Quilted Hooded Jacket,Michael Kors Outlet,mk_us,en_US,0001,BLACK,S,S,308884149,ADD_TO_BAG,Add to Bag,true,false,95.2,$95.20,250,$250.00,61,USD,
+77Y5590M42,Quilted Hooded Jacket,Michael Kors Outlet,mk_us,en_US,0001,BLACK,M,M,308884150,NOTIFY_ME,Sold Out,false,false,95.2,$95.20,250,$250.00,61,USD,
+77Y5590M42,Quilted Hooded Jacket,Michael Kors Outlet,mk_us,en_US,0250,KHAKI,XS,XS,308884153,ADD_TO_BAG,Add to Bag,true,false,95.2,$95.20,250,$250.00,61,USD,
+77Y5590M42,Quilted Hooded Jacket,Michael Kors Outlet,mk_us,en_US,0250,KHAKI,S,S,308884154,ADD_TO_BAG,Add to Bag,true,false,95.2,$95.20,250,$250.00,61,USD,
+77Y5590M42,Quilted Hooded Jacket,Michael Kors Outlet,mk_us,en_US,0250,KHAKI,M,M,308884155,ADD_TO_BAG,Add to Bag,true,false,95.2,$95.20,250,$250.00,61,USD,

@@ -1,7 +1,10 @@
 /**
- *  Multiple Colors With Multiple Sizes
  * Michael Kors / Kate Spade (Demandware) Product Variation Extractor
- * Goal: Build Color x Size matrix (price, stock, CTA) using JSON APIs (no scraping)
+ * Goal: Build Color x Size matrix (price, stock, CTA) using JSON APIs
+ *
+ * ✅ Handles BOTH cases:
+ *   1) Multiple colors + multiple sizes (apparel/shoes)
+ *   2) Multiple colors + NO size attribute (bags/accessories) -> fallback size = "NS"
  *
  * Works with:
  * - Product-NonCachedAttributes (to get colors/sizes list)
@@ -44,6 +47,8 @@ function parseArgs(argv) {
       args.timeoutMs = Number(rest[++i] || args.timeoutMs);
     else if (a === "--retries")
       args.retries = Number(rest[++i] || args.retries);
+    else if (a === "--quantity")
+      args.quantity = Number(rest[++i] || args.quantity);
   }
   return args;
 }
@@ -57,10 +62,6 @@ function ctaFrom(product) {
   const notify = Boolean(product?.isNotifyMeActive);
   const label =
     product?.soldOutLabel?.pdp || (available ? "Add to Bag" : "Notify Me");
-
-  // Rule:
-  // available true + notify false => Add to Bag
-  // else => Notify Me / OOS
   const type = available && !notify ? "ADD_TO_BAG" : "NOTIFY_ME";
   return { type, label, available, isNotifyMeActive: notify };
 }
@@ -77,18 +78,19 @@ function pickPrice(product) {
   };
 }
 
+function pickNameBrand(product) {
+  // Name/brand fields appear in both endpoints (Variation and NonCached)
+  const productName = product?.productName ?? null;
+  const brand =
+    product?.michael_kors_brand_name || product?.brand || "Michael Kors";
+  return { productName, brand };
+}
+
 function demandwareBase({ site, locale }) {
   return `https://www.michaelkors.com/on/demandware.store/Sites-${site}-Site/${locale}`;
 }
 
 function nonCachedUrl({ site, locale, pid, color }) {
-  // NOTE: Endpoint name can vary by implementation.
-  // You already captured "Product-NonCachedAttributes" response in your earlier logs.
-  // If your exact endpoint path differs, change it here.
-  //
-  // Common pattern seen:
-  //   /Product-NonCachedAttributes?pid=...&dwvar_{pid}_color=...
-  //
   const base = demandwareBase({ site, locale });
   const qp = new URLSearchParams();
   qp.set("pid", pid);
@@ -117,7 +119,6 @@ async function fetchJson(url, { timeoutMs, retries, retryDelayMs }) {
         const res = await fetch(url, {
           method: "GET",
           headers: {
-            // These headers help mimic real browser calls (often reduces blocks)
             accept: "application/json, text/plain, */*",
             "accept-language": "en-US,en;q=0.9",
             "user-agent":
@@ -134,11 +135,7 @@ async function fetchJson(url, { timeoutMs, retries, retryDelayMs }) {
           );
         }
 
-        const ct = res.headers.get("content-type") || "";
-        if (!ct.includes("application/json") && !ct.includes("text/json")) {
-          // Some deployments still send JSON with text/html; we try parse anyway.
-        }
-
+        // Some deployments return JSON with odd content-type; still parse.
         return await res.json();
       } catch (e) {
         lastErr = e;
@@ -151,6 +148,10 @@ async function fetchJson(url, { timeoutMs, retries, retryDelayMs }) {
   }
 }
 
+/**
+ * Extract colors + sizes from variationAttributes
+ * ✅ If size attribute missing -> fallback to single size "NS"
+ */
 function extractVariationAttributes(product) {
   const attrs = Array.isArray(product?.variationAttributes)
     ? product.variationAttributes
@@ -160,31 +161,44 @@ function extractVariationAttributes(product) {
 
   const colors = Array.isArray(colorAttr?.values)
     ? colorAttr.values
-        .filter((v) => v?.selectable !== false) // keep selectable
+        .filter((v) => v?.selectable !== false)
         .map((v) => ({
           id: String(v?.value ?? v?.id ?? ""),
           name: v?.displayValue ?? null,
-          inStockHint: Boolean(v?.inStock),
+          inStockHint: v?.inStock ?? null,
           swatch:
             v?.images?.swatch?.[0]?.absURL ||
             v?.images?.swatch?.[0]?.url ||
             null,
+          url: v?.url || null, // sometimes helpful
         }))
         .filter((c) => c.id)
     : [];
 
-  const sizes = Array.isArray(sizeAttr?.values)
+  const hasSizeAttribute = Boolean(
+    Array.isArray(sizeAttr?.values) && sizeAttr.values.length,
+  );
+
+  const sizes = hasSizeAttribute
     ? sizeAttr.values
-        .filter((v) => v?.selectable !== false) // keep selectable
+        .filter((v) => v?.selectable !== false)
         .map((v) => ({
           id: String(v?.value ?? v?.id ?? ""),
           label: v?.displayValue ?? null,
-          inStockHint: Boolean(v?.inStock),
+          inStockHint: v?.inStock ?? null,
+          url: v?.url || null,
         }))
         .filter((s) => s.id)
-    : [];
+    : [
+        {
+          id: "NS",
+          label: "NS",
+          inStockHint: null,
+          url: null,
+        },
+      ];
 
-  return { colors, sizes };
+  return { colors, sizes, hasSizeAttribute };
 }
 
 /** Simple concurrency pool */
@@ -226,27 +240,45 @@ async function main() {
   } = args;
 
   // 1) Base call to get colors + sizes list
-  // Pick any color (or none). If the endpoint requires a color, you can first call
-  // Product-Variation without size to discover colors, but generally NonCached gives it.
   const baseUrl = nonCachedUrl({ site, locale, pid, color: "" });
-
   const baseJson = await fetchJson(baseUrl, {
     timeoutMs,
     retries,
     retryDelayMs,
   });
-
   const baseProduct = baseJson?.product || {};
-  const { colors, sizes } = extractVariationAttributes(baseProduct);
 
-  if (!colors.length || !sizes.length) {
-    console.error(
-      "Could not extract colors/sizes from NonCachedAttributes response.",
-    );
+  const { colors, sizes, hasSizeAttribute } =
+    extractVariationAttributes(baseProduct);
+
+  if (!colors.length) {
+    console.error("Could not extract colors from response.");
     console.error(
       "Check endpoint URL in nonCachedUrl() and whether response contains variationAttributes.",
     );
     process.exit(2);
+  }
+
+  // Product name + brand (from NonCached)
+  let { productName, brand } = pickNameBrand(baseProduct);
+
+  // If missing in NonCached for some reason, fallback: fetch one variation
+  if (!productName || !brand) {
+    const fallbackColor = colors[0]?.id || "0001";
+    const fallbackSize = sizes[0]?.id || "NS";
+    const vUrl = variationUrl({
+      site,
+      locale,
+      pid,
+      color: fallbackColor,
+      size: fallbackSize,
+      quantity,
+    });
+    const vJson = await fetchJson(vUrl, { timeoutMs, retries, retryDelayMs });
+    const vProduct = vJson?.product || {};
+    const nb = pickNameBrand(vProduct);
+    productName = productName || nb.productName;
+    brand = brand || nb.brand;
   }
 
   // 2) Build tasks for (color, size) combinations
@@ -267,7 +299,7 @@ async function main() {
         locale,
         pid,
         color: color.id,
-        size: size.id,
+        size: size.id || "NS",
         quantity,
       });
 
@@ -280,7 +312,8 @@ async function main() {
         return {
           color_id: color.id,
           color_name: color.name,
-          size: size.id,
+          size: size.id || "NS",
+          size_label: size.label || size.id || "NS",
           sku: String(p?.selectedVariationProductId ?? p?.id ?? ""),
           price,
           cta,
@@ -289,7 +322,8 @@ async function main() {
         return {
           color_id: color.id,
           color_name: color.name,
-          size: size.id,
+          size: size.id || "NS",
+          size_label: size.label || size.id || "NS",
           error: String(e?.message || e),
         };
       }
@@ -312,11 +346,14 @@ async function main() {
 
   const output = {
     pid,
+    product_name: productName,
+    brand: brand,
     site,
     locale,
     extracted_at: new Date().toISOString(),
-    colors: colors,
-    sizes: sizes,
+    has_size_attribute: hasSizeAttribute,
+    colors,
+    sizes,
     matrix: Object.values(matrix),
   };
 

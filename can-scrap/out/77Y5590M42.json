@@ -1,0 +1,186 @@
+{
+  "pid": "77Y5590M42",
+  "product_name": "Quilted Hooded Jacket",
+  "brand": "Michael Kors Outlet",
+  "site": "mk_us",
+  "locale": "en_US",
+  "extracted_at": "2026-01-17T01:52:17.897Z",
+  "has_size_attribute": true,
+  "colors": [
+    {
+      "id": "0001",
+      "name": "BLACK",
+      "inStockHint": true,
+      "swatch": "https://michaelkors.scene7.com/is/image/MichaelKors/77Y5590M42-0001_swatch?$swatchlarge$"
+    },
+    {
+      "id": "0250",
+      "name": "KHAKI",
+      "inStockHint": true,
+      "swatch": "https://michaelkors.scene7.com/is/image/MichaelKors/77Y5590M42-0250_swatch?$swatchlarge$"
+    }
+  ],
+  "sizes": [
+    {
+      "id": "XS",
+      "label": "XS",
+      "inStockHint": true
+    },
+    {
+      "id": "S",
+      "label": "S",
+      "inStockHint": true
+    },
+    {
+      "id": "M",
+      "label": "M",
+      "inStockHint": true
+    }
+  ],
+  "matrix": [
+    {
+      "color_id": "0001",
+      "color_name": "BLACK",
+      "sizes": {
+        "XS": {
+          "ok": true,
+          "color_id": "0001",
+          "color_name": "BLACK",
+          "size": "XS",
+          "size_label": "XS",
+          "sku": "308884148",
+          "price": {
+            "sales": 95.2,
+            "sales_formatted": "$95.20",
+            "list": 250,
+            "list_formatted": "$250.00",
+            "discount_percent": 61,
+            "currency": "USD"
+          },
+          "cta": {
+            "type": "ADD_TO_BAG",
+            "label": "Add to Bag",
+            "available": true,
+            "isNotifyMeActive": false
+          }
+        },
+        "S": {
+          "ok": true,
+          "color_id": "0001",
+          "color_name": "BLACK",
+          "size": "S",
+          "size_label": "S",
+          "sku": "308884149",
+          "price": {
+            "sales": 95.2,
+            "sales_formatted": "$95.20",
+            "list": 250,
+            "list_formatted": "$250.00",
+            "discount_percent": 61,
+            "currency": "USD"
+          },
+          "cta": {
+            "type": "ADD_TO_BAG",
+            "label": "Add to Bag",
+            "available": true,
+            "isNotifyMeActive": false
+          }
+        },
+        "M": {
+          "ok": true,
+          "color_id": "0001",
+          "color_name": "BLACK",
+          "size": "M",
+          "size_label": "M",
+          "sku": "308884150",
+          "price": {
+            "sales": 95.2,
+            "sales_formatted": "$95.20",
+            "list": 250,
+            "list_formatted": "$250.00",
+            "discount_percent": 61,
+            "currency": "USD"
+          },
+          "cta": {
+            "type": "NOTIFY_ME",
+            "label": "Sold Out",
+            "available": false,
+            "isNotifyMeActive": false
+          }
+        }
+      }
+    },
+    {
+      "color_id": "0250",
+      "color_name": "KHAKI",
+      "sizes": {
+        "XS": {
+          "ok": true,
+          "color_id": "0250",
+          "color_name": "KHAKI",
+          "size": "XS",
+          "size_label": "XS",
+          "sku": "308884153",
+          "price": {
+            "sales": 95.2,
+            "sales_formatted": "$95.20",
+            "list": 250,
+            "list_formatted": "$250.00",
+            "discount_percent": 61,
+            "currency": "USD"
+          },
+          "cta": {
+            "type": "ADD_TO_BAG",
+            "label": "Add to Bag",
+            "available": true,
+            "isNotifyMeActive": false
+          }
+        },
+        "S": {
+          "ok": true,
+          "color_id": "0250",
+          "color_name": "KHAKI",
+          "size": "S",
+          "size_label": "S",
+          "sku": "308884154",
+          "price": {
+            "sales": 95.2,
+            "sales_formatted": "$95.20",
+            "list": 250,
+            "list_formatted": "$250.00",
+            "discount_percent": 61,
+            "currency": "USD"
+          },
+          "cta": {
+            "type": "ADD_TO_BAG",
+            "label": "Add to Bag",
+            "available": true,
+            "isNotifyMeActive": false
+          }
+        },
+        "M": {
+          "ok": true,
+          "color_id": "0250",
+          "color_name": "KHAKI",
+          "size": "M",
+          "size_label": "M",
+          "sku": "308884155",
+          "price": {
+            "sales": 95.2,
+            "sales_formatted": "$95.20",
+            "list": 250,
+            "list_formatted": "$250.00",
+            "discount_percent": 61,
+            "currency": "USD"
+          },
+          "cta": {
+            "type": "ADD_TO_BAG",
+            "label": "Add to Bag",
+            "available": true,
+            "isNotifyMeActive": false
+          }
+        }
+      }
+    }
+  ]
+}
