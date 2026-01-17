@@ -1,0 +1,8 @@
+npm init -y
+npm install axios playwright
+
+late you want add other module 
+npm install cheerio
+
+
+node filename.js

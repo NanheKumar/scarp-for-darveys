@@ -1,8 +1,10 @@
-const { chromium } = require("playwright");
 //https://www.michaelkors.com/on/demandware.store/Sites-mk_us-Site/en_US/Product-Variation?pid=77A7161M42
 //https://www.michaelkors.com/on/demandware.store/Sites-mk_us-Site/en_US/Product-Variation?pid=35R6G6AS2Y
+//https://www.michaelkors.com/on/demandware.store/Sites-mk_us-Site/en_US/Product-Variation?dwvar_35R6G6AS2Y_color=0001&dwvar_35R6G6AS2Y_size=NS&pid=35R6G6AS2Y&quantity=1
+//const { chromium } = require("playwright"); //if you want use require
+import { chromium } from "playwright"; // If   "type": "module", in package.json
 const URL =
-  "https://www.michaelkors.com/on/demandware.store/Sites-mk_us-Site/en_US/Product-Variation?dwvar_35R6G6AS2Y_color=0001&dwvar_35R6G6AS2Y_size=NS&pid=35R6G6AS2Y&quantity=1";
+  "https://www.coachoutlet.com/products/nolita-19-in-signature-canvas/CW426.html?frp=CW426+IMXDMhttps://www.coachoutlet.com/api/products/nolita-19/CDN25-SV%2FIZ.html?__v__=HtQ8OIoV2QoZmOhIgY1YY";
 
 (async () => {
   const browser = await chromium.launch({ headless: false });
