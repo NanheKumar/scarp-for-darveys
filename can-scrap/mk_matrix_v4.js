@@ -9,8 +9,8 @@
  * Node.js v18+ recommended.
  *
  * Usage:
- *   node mk_matrix_v3.js 77A7161M42
- *   node mk_matrix_v3.js 77A7161M42 --out ./out
+ *   node mk_matrix_v4.js 77T6831M42
+ *   node mk_matrix_v4.js 77A7161M42 --out ./out
  */
 
 import fs from "fs";
@@ -224,6 +224,8 @@ function toCSVRows(flatRows) {
     "size_id",
     "size_label",
     "sku",
+    "UPC",
+    "availableForInStorePickup",
     "cta_type",
     "cta_label",
     "available",
@@ -338,6 +340,8 @@ async function main() {
           size: size.id || "NS",
           size_label: size.label || size.id || "NS",
           sku: String(p?.selectedVariationProductId ?? p?.id ?? ""),
+          upc: p?.UPC ?? null,
+          availableForInStorePickup: p?.availableForInStorePickup ?? null,
           price,
           cta,
         };
@@ -393,6 +397,8 @@ async function main() {
     size_id: r.size,
     size_label: r.size_label,
     sku: r.ok ? r.sku : "",
+    UPC: r.ok ? (r.upc ?? "") : "",
+    availableForInStorePickup: r.ok ? (r.availableForInStorePickup ?? "") : "",
     cta_type: r.ok ? r.cta?.type : "",
     cta_label: r.ok ? r.cta?.label : "",
     available: r.ok ? r.cta?.available : "",
