@@ -1,22 +1,26 @@
 /**
- * 6pm / Zappos PDP Extractor (Color x Size) - Playwright
- * Output: JSON + CSV
+ * 6pm / Zappos PDP Extractor (Color x Size) - Playwright (HEADLESS)
+ * Output: console logs (later JSON/CSV add kar sakte hain)
  *
- * Handles per-color/per-size availability by clicking options and reading CTA.
+ * Same functionality, but browser window will NOT open.
  *
  * Install:
  *   npm i playwright
  *   npx playwright install chromium
  *
- * Run 
- *   node 6pm_visible_single_product.js 
- 
+ * Run:
+ *   node 6pm_headless_single_product.js
  */
+
 import { chromium } from "playwright";
 
-//const URL ="https://www.6pm.com/p/womens-calvin-klein-presley/product/10008224";
 const URL =
   "https://www.6pm.com/p/womens-karen-neuburger-plus-novelty-long-sleeve-girlfriend-pajama-set-love-at-the-dog-park/product/10034032/color/1124507";
+
+function normalize6pmUrl(u) {
+  // remove trailing /color/<id> if present
+  return u.replace(/\/color\/\d+(\?.*)?$/, "");
+}
 
 async function clickVisibleLabel(page, inputId, timeout = 20000) {
   const labels = page.locator(`label[for="${inputId}"]`);
@@ -27,8 +31,8 @@ async function clickVisibleLabel(page, inputId, timeout = 20000) {
   for (let i = 0; i < count; i++) {
     const lbl = labels.nth(i);
     if (await lbl.isVisible().catch(() => false)) {
-      await lbl.scrollIntoViewIfNeeded();
-      await lbl.click({ timeout });
+      await lbl.scrollIntoViewIfNeeded().catch(() => {});
+      await lbl.click({ timeout, force: true });
       return;
     }
   }
@@ -42,36 +46,28 @@ async function clickVisibleLabel(page, inputId, timeout = 20000) {
 }
 
 async function closeOOSPopupIfOpen(page) {
-  // OOS popup container (your HTML shows: <div class="Lp-z Mp-z"> ...)
   const popup = page.locator("div.Lp-z.Mp-z");
   if (!(await popup.isVisible().catch(() => false))) return false;
 
-  console.error("⚠️ OOS popup detected. Closing...");
-
-  // close button is the "X" SVG at end
-  // safest: click last svg inside popup
+  // close button: last svg inside popup
   const closeSvg = popup.locator("svg").last();
 
-  // sometimes svg clickable, sometimes needs parent click
   try {
     await closeSvg.scrollIntoViewIfNeeded().catch(() => {});
-    await closeSvg.click({ timeout: 5000 });
+    await closeSvg.click({ timeout: 5000, force: true });
   } catch {
-    // fallback: click near top-right of popup
     const box = await popup.boundingBox();
     if (box) {
       await page.mouse.click(box.x + box.width - 15, box.y + 15);
     }
   }
 
-  // wait until popup gone
   await popup.waitFor({ state: "hidden", timeout: 8000 }).catch(() => {});
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(200);
   return true;
 }
 
 async function getAvailability(page) {
-  // if popup is open, availability = OUT OF STOCK
   const popupOpen = await page
     .locator("div.Lp-z.Mp-z")
     .isVisible()
@@ -79,13 +75,10 @@ async function getAvailability(page) {
   if (popupOpen) return "OUT OF STOCK";
 
   if (await page.locator('button:has-text("Notify Me")').count()) {
-    // this can also be inline notify button (disabled)
     return "OUT OF STOCK";
   }
-  if (await page.locator("#add-to-cart-button").count()) {
-    return "IN STOCK";
-  }
-  // sticky add to bag button
+  if (await page.locator("#add-to-cart-button").count()) return "IN STOCK";
+
   if (
     await page
       .locator('button[data-track-value*="Add-To-Cart"]')
@@ -99,9 +92,7 @@ async function getAvailability(page) {
 }
 
 async function getPrice(page) {
-  // selling price content="63.97"
   const selling = await page.getAttribute('[itemprop="price"]', "content");
-  // msrp displayed in span.Ip-z Jp-z OR content in DOM text
   const msrpText = await page
     .locator("span.Ip-z")
     .first()
@@ -118,8 +109,7 @@ async function getPrice(page) {
 
 (async () => {
   const browser = await chromium.launch({
-    headless: false,
-    slowMo: 200, // visually debug
+    headless: true, // ✅ browser window NOT open
     args: ["--disable-blink-features=AutomationControlled"],
   });
 
@@ -136,7 +126,8 @@ async function getPrice(page) {
 
   const page = await context.newPage();
 
-  await page.goto(URL, { waitUntil: "networkidle", timeout: 60000 });
+  const fixedUrl = normalize6pmUrl(URL);
+  await page.goto(fixedUrl, { waitUntil: "networkidle", timeout: 60000 });
 
   console.log("Final URL:", page.url());
 
@@ -152,7 +143,6 @@ async function getPrice(page) {
   console.log("Brand:", brand?.trim());
   console.log("Product Name:", productName?.trim());
 
-  // COLORS inputs
   const colorInputs = await page.$$(
     'input[name="colorSelect"][data-style-id][data-color-name]',
   );
@@ -169,11 +159,10 @@ async function getPrice(page) {
 
     console.log("\nColor:", colorName, "| ID:", colorId);
 
-    await closeOOSPopupIfOpen(page); // safety
+    await closeOOSPopupIfOpen(page);
     await clickVisibleLabel(page, inputId);
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(400);
 
-    // re-fetch size inputs after color change (DOM changes)
     const sizeInputs = await page.$$(
       'input[data-track-label="size"][data-label]',
     );
@@ -182,13 +171,11 @@ async function getPrice(page) {
       const sizeLabel = await size.getAttribute("data-label");
       const sizeInputId = await size.getAttribute("id");
 
-      // before clicking next size, ensure popup closed
       await closeOOSPopupIfOpen(page);
 
       await clickVisibleLabel(page, sizeInputId);
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(400);
 
-      // if size click caused popup, close it after reading OOS
       const availability = await getAvailability(page);
       const price = await getPrice(page);
 
@@ -201,13 +188,12 @@ async function getPrice(page) {
         availability,
       );
 
-      // important: close popup so next size click won't be blocked
       await closeOOSPopupIfOpen(page);
     }
   }
 
-  console.log("\nFinished. Browser will stay open for 30 seconds...");
-  await page.waitForTimeout(30000);
-
   await browser.close();
-})();
+})().catch((e) => {
+  console.error("Fatal:", e);
+  process.exit(1);
+});
